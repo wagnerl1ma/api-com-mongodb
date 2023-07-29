@@ -1,3 +1,6 @@
+using MongoDb.API.Data;
+using MongoDb.API.Data.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddScoped<RestauranteRepository>();
 
 var app = builder.Build();
 
