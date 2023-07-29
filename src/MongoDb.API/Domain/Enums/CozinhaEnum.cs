@@ -1,4 +1,4 @@
-﻿namespace MongoDb.API.Data.Enums
+﻿namespace MongoDb.API.Domain.Enums
 {
     public enum CozinhaEnum
     {

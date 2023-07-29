@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
-using MongoDb.API.Data.Enums;
 using MongoDb.API.Data.ValueObjects;
+using MongoDb.API.Domain.Enums;
 
-namespace MongoDb.API.Data.Entities
+namespace MongoDb.API.Domain.Models
 {
     public class Restaurante : AbstractValidator<Restaurante>
     {
