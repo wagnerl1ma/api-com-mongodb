@@ -89,5 +89,17 @@ namespace MongoDb.API.Data.Repositories
 
             return resultado.ModifiedCount > 0;
         }
+
+        public IEnumerable<Restaurante> ObterPorNome(string nome)
+        {
+            var restaurantes = new List<Restaurante>();
+
+            _restaurantes.AsQueryable()
+                .Where(x => x.Nome.ToLower().Contains(nome.ToLower()))
+                .ToList()
+                .ForEach(d => restaurantes.Add(d.ConverterParaDomain()));
+
+            return restaurantes;
+        }
     }
 }

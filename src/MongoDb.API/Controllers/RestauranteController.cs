@@ -88,6 +88,22 @@ namespace MongoDb.API.Controllers
             return Ok(new { data = exibicao });
         }
 
+        [HttpGet("obter-por-nome")]
+        public ActionResult ObterRestaurantePorNome([FromQuery] string nome)
+        {
+            var restaurantes = _restauranteRepository.ObterPorNome(nome);
+
+            var listagem = restaurantes.Select(x => new RestauranteListagemResult
+            {
+                Id = x.Id,
+                Nome = x.Nome,
+                Cozinha = (int)x.Cozinha,
+                Cidade = x.Endereco.Cidade
+            });
+
+            return Ok(new { data = listagem });
+        }
+
         [HttpPut]
         public ActionResult AlterarRestaurante([FromBody] RestauranteAlteracaoCompletaViewModel restauranteAlteracaoCompleta)
         {
@@ -135,7 +151,7 @@ namespace MongoDb.API.Controllers
                 return BadRequest(new { errors = "Nenhum documento foi alterado" });
             }
 
-            return Ok( new { data = "Restaurante alterado com sucesso" });
+            return Ok(new { data = "Restaurante alterado com sucesso" });
         }
     }
 }
