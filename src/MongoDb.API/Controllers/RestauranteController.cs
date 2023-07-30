@@ -5,6 +5,7 @@ using MongoDb.API.Domain.Enums;
 using MongoDb.API.Domain.Models;
 using MongoDb.API.Domain.ViewModels;
 using MongoDb.API.Results;
+using MongoDb.API.ViewModels;
 
 namespace MongoDb.API.Controllers
 {
@@ -37,12 +38,12 @@ namespace MongoDb.API.Controllers
 
             if (!restaurante.Validar())
             {
-                return BadRequest( new { errors = restaurante.ValidationResult.Errors.Select(x => x.ErrorMessage) });
+                return BadRequest(new { errors = restaurante.ValidationResult.Errors.Select(x => x.ErrorMessage) });
             }
 
             _restauranteRepository.Inserir(restaurante);
 
-            return Ok( new { data = "Restaurante inserido com sucesso" });
+            return Ok(new { data = "Restaurante inserido com sucesso" });
         }
 
         [HttpGet]
@@ -58,7 +59,7 @@ namespace MongoDb.API.Controllers
                 Cidade = x.Endereco.Cidade
             });
 
-            return Ok( new { data = listagem });
+            return Ok(new { data = listagem });
         }
 
         [HttpGet("{id}")]
@@ -84,7 +85,57 @@ namespace MongoDb.API.Controllers
                 }
             };
 
-            return Ok( new { data = exibicao });
+            return Ok(new { data = exibicao });
+        }
+
+        [HttpPut]
+        public ActionResult AlterarRestaurante([FromBody] RestauranteAlteracaoCompletaViewModel restauranteAlteracaoCompleta)
+        {
+            var restaurante = _restauranteRepository.ObterPorId(restauranteAlteracaoCompleta.Id);
+
+            if (restaurante == null)
+                return NotFound();
+
+            var cozinha = ECozinhaHelper.ConverterDeInteiro(restauranteAlteracaoCompleta.Cozinha);
+            restaurante = new Restaurante(restauranteAlteracaoCompleta.Id, restauranteAlteracaoCompleta.Nome, cozinha);
+            var endereco = new Endereco(
+                restauranteAlteracaoCompleta.Logradouro,
+                restauranteAlteracaoCompleta.Numero,
+                restauranteAlteracaoCompleta.Cidade,
+                restauranteAlteracaoCompleta.UF,
+                restauranteAlteracaoCompleta.Cep);
+
+            restaurante.AtribuirEndereco(endereco);
+
+            if (!restaurante.Validar())
+            {
+                return BadRequest(new { errors = restaurante.ValidationResult.Errors.Select(_ => _.ErrorMessage) });
+            }
+
+            if (!_restauranteRepository.AlterarCompleto(restaurante))
+            {
+                return BadRequest(new { errors = "Nenhum documento foi alterado" });
+            }
+
+            return Ok(new { data = "Restaurante alterado com sucesso" });
+        }
+
+        [HttpPatch("{id}")] //Alteracao Parcial
+        public ActionResult AlterarCozinha(string id, [FromBody] RestauranteAlteracaoParcialViewModel restauranteAlteracaoParcial)
+        {
+            var restaurante = _restauranteRepository.ObterPorId(id);
+
+            if (restaurante == null)
+                return NotFound();
+
+            var cozinha = ECozinhaHelper.ConverterDeInteiro(restauranteAlteracaoParcial.Cozinha);
+
+            if (!_restauranteRepository.AlterarCozinha(id, cozinha))
+            {
+                return BadRequest(new { errors = "Nenhum documento foi alterado" });
+            }
+
+            return Ok( new { data = "Restaurante alterado com sucesso" });
         }
     }
 }

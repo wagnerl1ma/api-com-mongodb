@@ -1,5 +1,6 @@
 ﻿using MongoDb.API.Data.Mappings;
 using MongoDb.API.Data.ValueObjects;
+using MongoDb.API.Domain.Enums;
 using MongoDb.API.Domain.Models;
 using MongoDB.Driver;
 
@@ -56,6 +57,37 @@ namespace MongoDb.API.Data.Repositories
                 return null;
 
             return document.ConverterParaDomain();
+        }
+
+        public bool AlterarCompleto(Restaurante restaurante)
+        {
+            var document = new RestauranteMapping
+            {
+                Id = restaurante.Id,
+                Nome = restaurante.Nome,
+                Cozinha = restaurante.Cozinha,
+                Endereco = new EnderecoMapping
+                {
+                    Logradouro = restaurante.Endereco.Logradouro,
+                    Numero = restaurante.Endereco.Numero,
+                    Cidade = restaurante.Endereco.Cidade,
+                    Cep = restaurante.Endereco.Cep,
+                    UF = restaurante.Endereco.UF
+                }
+            };
+
+            var resultado = _restaurantes.ReplaceOne(x => x.Id == document.Id, document);
+
+            return resultado.ModifiedCount > 0;
+        }
+
+        public bool AlterarCozinha(string id, CozinhaEnum cozinha)
+        {
+            var atualizacao = Builders<RestauranteMapping>.Update.Set(x => x.Cozinha, cozinha); // usando o Set para alterar somente um campo
+
+            var resultado = _restaurantes.UpdateOne(x => x.Id == id, atualizacao);
+
+            return resultado.ModifiedCount > 0;
         }
     }
 }
