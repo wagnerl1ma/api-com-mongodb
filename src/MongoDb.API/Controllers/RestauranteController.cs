@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MongoDb.API.Data.Repositories;
 using MongoDb.API.Data.ValueObjects;
 using MongoDb.API.Domain.Enums;
 using MongoDb.API.Domain.Models;
@@ -9,6 +10,13 @@ namespace MongoDb.API.Controllers
     [ApiController]
     public class RestauranteController : ControllerBase
     {
+        private readonly RestauranteRepository _restauranteRepository;
+
+        public RestauranteController(RestauranteRepository restauranteRepository)
+        {
+            _restauranteRepository = restauranteRepository;
+        }
+
         [HttpPost("restaurante")]
         public ActionResult IncluirRestaurante([FromBody] RestauranteInclusaoViewModel restauranteInclusao)
         {
@@ -30,7 +38,7 @@ namespace MongoDb.API.Controllers
                 return BadRequest( new { errors = restaurante.ValidationResult.Errors.Select(x => x.ErrorMessage) });
             }
 
-            //_restauranteRepository.Inserir(restaurante);
+            _restauranteRepository.Inserir(restaurante);
 
             return Ok( new { data = "Restaurante inserido com sucesso" });
         }
