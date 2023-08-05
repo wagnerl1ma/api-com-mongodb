@@ -153,5 +153,25 @@ namespace MongoDb.API.Controllers
 
             return Ok(new { data = "Restaurante alterado com sucesso" });
         }
+
+        [HttpPatch("restaurante/{id}/avaliar")] //Alteracao Parcial
+        public ActionResult AvaliarRestaurante(string id, [FromBody] AvaliacaoInclusaoViewModel avaliacaoInclusao)
+        {
+            var restaurante = _restauranteRepository.ObterPorId(id);
+
+            if (restaurante == null)
+                return NotFound();
+
+            var avaliacao = new Avaliacao(avaliacaoInclusao.Estrelas, avaliacaoInclusao.Comentario);
+
+            if (!avaliacao.Validar())
+            {
+                return BadRequest(new { errors = avaliacao.ValidationResult.Errors.Select(_ => _.ErrorMessage)} );
+            }
+
+            _restauranteRepository.Avaliar(id, avaliacao);
+
+            return Ok(new { data = "Restaurante avaliado com sucesso" });
+        }
     }
 }

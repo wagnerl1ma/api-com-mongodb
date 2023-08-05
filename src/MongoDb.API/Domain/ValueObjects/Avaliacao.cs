@@ -7,7 +7,7 @@ namespace MongoDb.API.Data.ValueObjects
     {
         public int Estrelas { get; private set; }
 
-        public string Comentario { get; private set; }
+        public string? Comentario { get; private set; }
 
         public ValidationResult ValidationResult { get; set; }
 

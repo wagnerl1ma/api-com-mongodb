@@ -9,10 +9,12 @@ namespace MongoDb.API.Data.Repositories
     public class RestauranteRepository
     {
         IMongoCollection<RestauranteMapping> _restaurantes;
+        IMongoCollection<AvaliacaoMapping> _avaliacoes;
 
         public RestauranteRepository(MongoDbContext mongoDB)
         {
             _restaurantes = mongoDB.DbContext.GetCollection<RestauranteMapping>("restaurantes");
+            _avaliacoes = mongoDB.DbContext.GetCollection<AvaliacaoMapping>("avaliacoes");
         }
 
         public void Inserir(Restaurante restaurante)
@@ -100,6 +102,18 @@ namespace MongoDb.API.Data.Repositories
                 .ForEach(d => restaurantes.Add(d.ConverterParaDomain()));
 
             return restaurantes;
+        }
+
+        public void Avaliar(string restauranteId, Avaliacao avaliacao)
+        {
+            var document = new AvaliacaoMapping
+            {
+                RestauranteId = restauranteId,
+                Estrelas = avaliacao.Estrelas,
+                Comentario = avaliacao.Comentario
+            };
+
+            _avaliacoes.InsertOne(document);
         }
     }
 }
