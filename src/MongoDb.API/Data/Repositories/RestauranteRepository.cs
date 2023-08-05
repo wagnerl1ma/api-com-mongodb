@@ -115,5 +115,31 @@ namespace MongoDb.API.Data.Repositories
 
             _avaliacoes.InsertOne(document);
         }
+
+        public async Task<Dictionary<Restaurante, double>> ObterTop3()
+        {
+            var retorno = new Dictionary<Restaurante, double>();
+
+            var top3 = _avaliacoes.Aggregate()
+                .Group(_ => _.RestauranteId, g => new { RestauranteId = g.Key, MediaEstrelas = g.Average(a => a.Estrelas) }) // agrupando por RestauranteId e retonar a médida de estrelas (MediaEstrelas)
+                .SortByDescending(_ => _.MediaEstrelas) // Ordenar pela MediaEstrelas decrescente
+                .Limit(3); // pega os 3 primeiros
+
+
+            // traz os restaurantes junto com as avaliacoes
+            await top3.ForEachAsync(x =>
+            {
+                var restaurante = ObterPorId(x.RestauranteId);
+
+                _avaliacoes.AsQueryable()
+                    .Where(a => a.RestauranteId == x.RestauranteId)
+                    .ToList()
+                    .ForEach(a => restaurante.InserirAvaliacao(a.ConverterParaDomain()));
+
+                retorno.Add(restaurante, x.MediaEstrelas);
+            });
+
+            return retorno;
+        }
     }
 }

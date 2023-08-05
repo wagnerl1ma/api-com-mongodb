@@ -6,7 +6,8 @@
         Italiana = 2,
         Arabe = 3,
         Japonesa = 4,
-        FastFood = 5
+        FastFood = 5,
+        Americana = 6
     }
 
     public static class ECozinhaHelper
