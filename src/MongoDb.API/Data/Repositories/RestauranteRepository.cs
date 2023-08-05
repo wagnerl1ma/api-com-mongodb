@@ -141,5 +141,13 @@ namespace MongoDb.API.Data.Repositories
 
             return retorno;
         }
+
+        public (long, long) Remover(string restauranteId) // retornando 2 parametros com tuplas
+        {
+            var resultadoAvaliacoes = _avaliacoes.DeleteMany(_ => _.RestauranteId == restauranteId); //deletando avaliacoes
+            var resultadoRestaurante = _restaurantes.DeleteOne(_ => _.Id == restauranteId); //deletando restaurante
+
+            return (resultadoRestaurante.DeletedCount, resultadoAvaliacoes.DeletedCount); // retornando os resultados do delete de restaurante e avaliacoes
+        }
     }
 }
