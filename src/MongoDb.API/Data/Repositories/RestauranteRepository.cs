@@ -3,6 +3,7 @@ using MongoDb.API.Data.ValueObjects;
 using MongoDb.API.Domain.Enums;
 using MongoDb.API.Domain.Models;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace MongoDb.API.Data.Repositories
 {
@@ -148,6 +149,20 @@ namespace MongoDb.API.Data.Repositories
             var resultadoRestaurante = _restaurantes.DeleteOne(_ => _.Id == restauranteId); //deletando restaurante
 
             return (resultadoRestaurante.DeletedCount, resultadoAvaliacoes.DeletedCount); // retornando os resultados do delete de restaurante e avaliacoes
+        }
+
+        public async Task<IEnumerable<Restaurante>> ObterPorBuscaTextual(string texto)
+        {
+            var restaurantes = new List<Restaurante>();
+
+            var filter = Builders<RestauranteMapping>.Filter.Text(texto); //Text = $text 
+
+            await _restaurantes
+                .AsQueryable()
+                .Where(x => filter.Inject())
+                .ForEachAsync(d => restaurantes.Add(d.ConverterParaDomain()));
+
+            return restaurantes;
         }
     }
 }
