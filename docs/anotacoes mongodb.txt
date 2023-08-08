@@ -1,0 +1,146 @@
+MongoDB
+
+Tipos de acesso para ver seu banco de dados MongoDB:
+ - MongoDB Atlas (Web)
+ - MongoDB Compass (Aplicativo)
+ - Mongo Shell (Linha de Comando)
+ 
+ ## Gráfico de mapeamento SQL para MongoDB
+ https://www.mongodb.com/docs/manual/reference/sql-comparison/
+ 
+			########### FILTROS E CONSULTAS -  mongodb Compass
+			
+------- Documentaçoes:			
+https://www.mongodb.com/docs/compass/current/query/filter/
+https://www.mongodb.com/docs/manual/reference/operator/query/
+-------
+
+Operadores e consultas:
+
+ Or
+  {$or: [{transaction_count: 50}, {transaction_count: 66}]}
+ 
+ Menor que 33
+  {transaction_count: {$lt: 33}}
+ 
+ MenorIgualQue 33
+  {transaction_count: {$lte: 33}}
+ 
+- Para filtrar documentos com um campo específico: { campo: valor }
+- Para filtrar documentos com um campo que contenha um valor específico: { campo: { $eq: valor } }
+- Para filtrar documentos com um campo que não contenha um valor específico: { campo: { $ne: valor } }
+- Para filtrar documentos com um campo que contenha um valor maior do que um determinado valor: { campo: { $gt: valor } }
+- Para filtrar documentos com um campo que contenha um valor menor do que um determinado valor: { campo: { $lt: valor } }
+- Para filtrar documentos com um campo que contenha um valor maior ou igual a um determinado valor: { campo: { $gte: valor } }
+- Para filtrar documentos com um campo que contenha um valor menor ou igual a um determinado valor: { campo: { $lte: valor } }
+- Para filtrar documentos com um campo que contenha um valor que comece com uma determinada string: { campo: { $regex: 'string' } }
+- Para filtrar documentos com um campo que contenha um valor que termine com uma determinada string: { campo: { $regex: 'string$' } }
+- Para filtrar documentos com um campo que contenha um valor que contenha uma determinada string em qualquer lugar: { campo: { $regex: '.*string.*' } }
+- Para filtrar documentos com um campo que contenha um valor que esteja em uma lista de valores: { campo: { $in: [valor1, valor2, ...] } }
+- Para filtrar documentos com um campo que não esteja em uma lista de valores: { campo: { $nin: [valor1, valor2, ...] } }
+- Para filtrar documentos com um campo que contenha um valor que esteja entre dois valores: { campo: { $gt: valor1, $lt: valor2 } }
+- Para filtrar documentos com um campo que contenha um valor que esteja entre dois valores, incluindo os valores especificados: { campo: { $gte: valor1, $lte: valor2 } }
+- Para filtrar documentos com um campo que contenha um valor que corresponda a uma expressão regular case-insensitive: { campo: { $regex: /expressão regular/i } }
+- Para filtrar documentos com um campo que contenha um valor que corresponda a uma expressão regular case-sensitive: { campo: { $regex: /expressão regular/ } } 
+- Find Like(contém) : db.users.find({name: /a/})  // Like '%a%' OU {name : {$regex: 'texto'}}
+- Filtro por ObjectId => {_id : ObjectId('578f6fa2df35c7fbdbaed8c6')}
+- Count : db.Colecao.countDocuments()
+- Count e Contains : db.Produtos.countDocuments({Nome: {$regex: 'TV'}})  --> filtrando documentos da colecao Produtos onde contem o nome 'TV'
+- Distinct: db.Produtos.distinct("Nome")  --> nao mostrar repetido tudo aquilo que se encontra no atributo Nome
+
+####################################################### CRUD
+
+- Documentacao CRUD mongodb:
+ https://www.mongodb.com/docs/manual/crud/
+
+ 
+			########### UPDATES
+----  Update: 	
+1 - seleciona o db que irá recber o update	com o comando "use"
+ use curso  
+
+2 - Isso atualiza o campo “ProductName” para “Caixa-Atualizado” em todos os documentos que têm o campo “ProductName” igual a “Caixa3”
+ db.products.updateMany({ProductName: "Caixa3"}, {$set: {ProductName: "Caixa-Atualizado"} }) 
+ 
+2 - Isso atualiza o campo “ProductName” para “Caixa-Atualizado-One” em apenas um documento(pega o primeiro) que têm o campo “ProductName” igual a “Caixa” evitando um update sem where
+ db.products.updateOne({ProductName: "Caixa"}, {$set: {ProductName: "Caixa-Atualizado-One"} }) 
+									  
+									  
+			########### INSERTS
+				
+Insert:
+1 - seleciona o db que irá recber o insert	com o comando "use"
+ use curso 
+
+2 - comando insert 
+db.products.insert({ProductName: "Caixa30", Price: 30})
+
+3 - insert com Data usando o ISODate
+db.Produtos.insertOne(
+   { status: "Teste Indice TTL", expira_em: ISODate("2013-10-02T01:11:18.965Z") }
+)
+
+obs: O db mongoDb sempre trabalha com o formato de data UTC
+
+			########### REMOVE
+1 - seleciona o db que irá recber o insert	com o comando "use"
+ use curso 
+
+2 - comando remove todos		
+db.products.deleteMany({ProductName: "Caixa30"})
+
+2 - comando remove somente um, o primeiro que encontrar na condição 		
+db.products.deleteOne({ProductName: "Caixa30"})
+
+
+			########### ÍNDICES 
+			
+-- Criando Indices
+ db.Produtos.createIndex({'Nome': 1})	 --> criando indice do atributo(coluna) Nome, com o indice crescente = 1
+ db.Produtos.createIndex({'Nome': -1}) --> criando indice do atributo(coluna) Nome, com o indice decrescente = -1
+ db.Produtos.createIndex({'Nome': -1, 'Preco': 1})
+ 
+-- Indices Textual --> é um indice para fazer consulta ignorando acentuação 
+- Criando Indice Textual para um atributo/coluna específica 
+db.Produtos.createIndex({ 'Nome' : "text"}, {default_language: "portuguese"}) --> criando indice do atributo(coluna) Nome, do tipo text e com o padrão de linguagem em português.
+
+-- Criando Indice Textual para qualquer campo
+db.Produtos.createIndex({ "$**" : "text"}, {default_language: "portuguese"}) --> criando indice para qualquer atributo(coluna), do tipo text e com o padrão de linguagem em português.
+
+db.restaurantes.createIndex({ "$**" : "text"}, {default_language: "portuguese"}) -- cria um indice para qualquer atributo da coleção 
+
+- Busca/Consulta para consultar textos ignorando a acentuação 
+db.Produtos.find( {$text: {$search: "TVzão"} } )   --> necessita do índice textual para funcionar
+
+-- Indices TTL --> Indice que o exclui o documento depois de um tempo
+db.Produtos.createIndex( {"expira_em": 1}, {expireAfterSeconds : 0})  --> na coluna expira_em, usando ordem crescente, expira depois de {0} segundos usando o comando  {expireAfterSeconds : 0} , entao nesse caso depois de 0 segundos ele irá remover o documento que se encontra nessa condicao e se a data do campo "expira_em" estiver expirada.
+ 
+-- Verificar índices criados
+ db.Produtos.getIndexes()
+ 
+ -- Documentação
+ https://www.mongodb.com/docs/manual/indexes/
+ 
+ 			########### AGREGAÇÕES (Aggregations) 
+ 			
+-- Para que serve Agregação?
+- Realizar operações nos dados agrupados para retornar um único resultado.	
+
+- O MongoDB oferece três maneiras de executar a agregação: os métodos de agregação de finalidade única, a função de map reduce e o pipeline de agregação. Os métodos de agregação de finalidade única são basicamente as funções db.collection.estimatedDocumentCount (), db.collection.count () e db.collection.distinct (). O pipeline de agregação consiste em uma ou mais etapas que processam documentos. Cada etapa executa uma operação nos documentos de entrada. Por exemplo, uma etapa pode filtrar documentos, agrupar documentos e calcular valores. Os documentos que são produzidos por uma etapa são passados para a próxima etapa	
+
+-- Documentação
+https://www.mongodb.com/docs/manual/core/aggregation-pipeline/ 		
+https://www.mongodb.com/docs/manual/aggregation/	
+
+-- Comparando comandos SQL com o mongoDb (Termos, funções e conceitos do SQL)
+https://www.mongodb.com/docs/manual/reference/sql-aggregation-comparison/
+
+                                               ########### comandos dbShell
+ver banco de dados
+show dbs
+
+## Configurando Variaveis de ambiente:
+C:\Program Files\MongoDB\Server\6.0\bin
+C:\Program Files\MongoDB\mongosh-1.9.1-win32-x64
+
+
