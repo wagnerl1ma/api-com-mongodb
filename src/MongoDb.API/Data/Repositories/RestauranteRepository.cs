@@ -143,6 +143,40 @@ namespace MongoDb.API.Data.Repositories
             return retorno;
         }
 
+        public Dictionary<Restaurante, double> ObterTop3ComLookup() // com lookup as consultas sao mais rápidas
+        {
+            var retorno = new Dictionary<Restaurante, double>();
+
+            var top3 = _avaliacoes.Aggregate()
+            .Group(_ => _.RestauranteId, g => new { RestauranteId = g.Key, MediaEstrelas = g.Average(a => a.Estrelas) })
+            .SortByDescending(_ => _.MediaEstrelas) // Ordenar pela MediaEstrelas decrescente
+            .Limit(3) // pega os 3 primeiros
+            .Lookup<RestauranteMapping, RestauranteAvaliacaoMapping>("restaurantes", "RestauranteId", "Id", "Restaurante")
+            .Lookup<AvaliacaoMapping, RestauranteAvaliacaoMapping>("avaliacoes", "Id", "RestauranteId", "Avaliacoes");
+
+            foreach (var top in top3.ToList())
+            {
+                if (!top.Restaurante.Any())
+                    return retorno;
+
+                var restaurante = new Restaurante(top.Id, top.Restaurante[0].Nome, top.Restaurante[0].Cozinha);
+
+                var endereco = new Endereco(
+                    top.Restaurante[0].Endereco.Logradouro,
+                    top.Restaurante[0].Endereco.Numero,
+                    top.Restaurante[0].Endereco.Cidade,
+                    top.Restaurante[0].Endereco.UF,
+                    top.Restaurante[0].Endereco.Cep);
+
+                restaurante.AtribuirEndereco(endereco);
+
+                top.Avaliacoes.ForEach(a => restaurante.InserirAvaliacao(a.ConverterParaDomain()));
+                retorno.Add(restaurante, top.MediaEstrelas);
+            }
+
+            return retorno;
+        }
+
         public (long, long) Remover(string restauranteId) // retornando 2 parametros com tuplas
         {
             var resultadoAvaliacoes = _avaliacoes.DeleteMany(_ => _.RestauranteId == restauranteId); //deletando avaliacoes

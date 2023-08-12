@@ -154,7 +154,7 @@ namespace MongoDb.API.Controllers
             return Ok(new { data = "Restaurante alterado com sucesso" });
         }
 
-        [HttpPatch("restaurante/{id}/avaliar")] //Alteracao Parcial
+        [HttpPatch("{id}/avaliar")] //Alteracao Parcial
         public ActionResult AvaliarRestaurante(string id, [FromBody] AvaliacaoInclusaoViewModel avaliacaoInclusao)
         {
             var restaurante = _restauranteRepository.ObterPorId(id);
@@ -174,7 +174,7 @@ namespace MongoDb.API.Controllers
             return Ok(new { data = "Restaurante avaliado com sucesso" });
         }
 
-        [HttpGet("restaurante/top3")]
+        [HttpGet("top3")]
         public async Task<ActionResult> ObterTop3Restaurantes()
         {
             var top3 = await _restauranteRepository.ObterTop3();
@@ -191,7 +191,24 @@ namespace MongoDb.API.Controllers
             return Ok(new { data = listagem });
         }
 
-        [HttpDelete("restaurante/{id}")]
+        [HttpGet("top3-lookup")]
+        public ActionResult ObterTop3RestaurantesComLookup()
+        {
+            var top3 = _restauranteRepository.ObterTop3ComLookup();
+
+            var listagem = top3.Select(x => new RestauranteTop3Result
+            {
+                Id = x.Key.Id,
+                Nome = x.Key.Nome,
+                Cozinha = (int)x.Key.Cozinha,
+                Cidade = x.Key.Endereco.Cidade,
+                Estrelas = x.Value
+            });
+
+            return Ok(new { data = listagem });
+        }
+
+        [HttpDelete("{id}")]
         public ActionResult Remover(string id)
         {
             var restaurante = _restauranteRepository.ObterPorId(id);
@@ -204,7 +221,7 @@ namespace MongoDb.API.Controllers
             return Ok(new { data = $"Total de exclusões: {totalRestauranteRemovido} restaurante com {totalAvaliacoesRemovidas} avaliações" });
         }
 
-        [HttpGet("restaurante/textual")]
+        [HttpGet("textual")]
         public async Task<ActionResult> ObterRestaurantePorBuscaTextual([FromQuery] string texto)
         {
             var restaurantes = await _restauranteRepository.ObterPorBuscaTextual(texto);
